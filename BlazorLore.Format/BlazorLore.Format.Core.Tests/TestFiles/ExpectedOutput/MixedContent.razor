@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>@PageTitle</title>
+        <title>
+        @PageTitle
+        </title>
     </head>
     <body>
         @page "/mixed"
@@ -10,20 +12,25 @@
             @if (showHeader)
             {
                 <header>
-                    <h1>@Title</h1>
+                    <h1>
+                    @Title
+                    </h1>
                 </header>
             }
             <main>
-                @Body
+            @Body
             </main>
         </div>
-        
-        @code
-        {
-            [Parameter] public string PageTitle { get; set; } = "Default Title";
-            [Parameter] public string Title { get; set; } = "Welcome";
-            [Parameter] public RenderFragment Body { get; set; }
-            private bool showHeader = true;
-        }
     </body>
 </html>
+
+@code
+{
+    [Parameter] public string PageTitle { get; set; } = "Default Title";
+
+    [Parameter] public string Title { get; set; } = "Welcome";
+
+    [Parameter] public RenderFragment Body { get; set; }
+
+    private bool showHeader = true;
+}
