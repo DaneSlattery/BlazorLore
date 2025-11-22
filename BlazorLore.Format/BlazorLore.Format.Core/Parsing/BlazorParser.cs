@@ -55,6 +55,7 @@ public class SimpleRazorParser
     private static readonly Regex DirectiveRegex = new(@"@(?<directive>page|using|inject|inherits|layout|implements|rendermode|attribute)\s+(?<value>.*?)$", RegexOptions.Multiline);
     private static readonly Regex IfBlockRegex = new(@"@if\s*\(", RegexOptions.Singleline);
     private static readonly Regex ForeachBlockRegex = new(@"@foreach\s*\(", RegexOptions.Singleline);
+    private static readonly Regex ForBlockRegex = new(@"@for\s*\(", RegexOptions.Singleline);
     private static readonly Regex ElseIfBlockRegex = new(@"else\s+if\s*\(", RegexOptions.Singleline);
     private static readonly Regex ElseBlockRegex = new(@"else(?!\s+if)", RegexOptions.Singleline);
 
@@ -156,6 +157,7 @@ public class SimpleRazorParser
                 var directiveMatch = DirectiveRegex.Match(content, nextIndex);
                 var ifBlockMatch = IfBlockRegex.Match(content, nextIndex);
                 var foreachBlockMatch = ForeachBlockRegex.Match(content, nextIndex);
+                var forBlockMatch = ForBlockRegex.Match(content, nextIndex);
 
                 var razorMatches = new[]
                 {
@@ -163,6 +165,7 @@ public class SimpleRazorParser
                     (match: directiveMatch, type: "directive"),
                     (match: ifBlockMatch, type: "ifblock"),
                     (match: foreachBlockMatch, type: "foreachblock"),
+                    (match: forBlockMatch, type: "forblock"),
                     (match: codeBlockMatch, type: "codeblock"),
                     (match: expressionMatch, type: "expression")
                 }
@@ -245,6 +248,34 @@ public class SimpleRazorParser
                                             EndPosition = foreachBraceEnd + 1
                                         });
                                         position = foreachBraceEnd + 1;
+                                        continue;
+                                    }
+                                }
+                            }
+                            break;
+                            
+                        case "forblock":
+                            var forStart = razorMatches.match.Index;
+                            // Find the condition by matching parentheses
+                            var forConditionStart = forStart + razorMatches.match.Length;
+                            var (forCondition, forConditionEnd) = ExtractCondition(content, forConditionStart - 1);
+                            if (!string.IsNullOrEmpty(forCondition))
+                            {
+                                var forBraceStart = content.IndexOf('{', forConditionEnd);
+                                if (forBraceStart != -1)
+                                {
+                                    var forBraceEnd = FindMatchingBrace(content, forBraceStart);
+                                    if (forBraceEnd != -1)
+                                    {
+                                        var forContent = content.Substring(forBraceStart + 1, forBraceEnd - forBraceStart - 1);
+                                        nodes.Add(new CodeBlockNode
+                                        {
+                                            Code = $"for ({forCondition})\n{{\n{forContent}\n}}",
+                                            Type = CodeBlockType.ForBlock,
+                                            StartPosition = forStart,
+                                            EndPosition = forBraceEnd + 1
+                                        });
+                                        position = forBraceEnd + 1;
                                         continue;
                                     }
                                 }

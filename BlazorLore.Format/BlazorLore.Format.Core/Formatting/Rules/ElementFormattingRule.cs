@@ -273,6 +273,10 @@ public class ElementFormattingRule : IFormattingRule
             {
                 new ForeachBlockFormattingRule().Apply(codeBlock, context);
             }
+            else if (codeBlock.Type == CodeBlockType.ForBlock)
+            {
+                new ForBlockFormattingRule().Apply(codeBlock, context);
+            }
             else if (codeBlock.Type == CodeBlockType.ElseBlock || codeBlock.Type == CodeBlockType.ElseIfBlock)
             {
                 new ElseBlockFormattingRule().Apply(codeBlock, context);

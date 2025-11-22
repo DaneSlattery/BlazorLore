@@ -46,6 +46,7 @@ public class CodeBlockFormattingRule : IFormattingRule
                 break;
             case CodeBlockType.IfBlock:
             case CodeBlockType.ForeachBlock:
+            case CodeBlockType.ForBlock:
             case CodeBlockType.ElseBlock:
             case CodeBlockType.ElseIfBlock:
                 // These are handled by their specific formatting rules

@@ -53,6 +53,7 @@ public enum CodeBlockType
     CodeBlock,
     IfBlock,
     ForeachBlock,
+    ForBlock,
     ElseBlock,
     ElseIfBlock
 }
