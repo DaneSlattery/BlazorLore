@@ -505,8 +505,80 @@ public class SimpleRazorParser
                 position++; // Skip opening quote
 
                 var valueStart = position;
-                while (position < content.Length && content[position] != quoteChar)
+                var parenDepth = 0;
+                var braceDepth = 0;
+
+                while (position < content.Length)
+                {
+                    var ch = content[position];
+
+                    if (ch == '\\' && position + 1 < content.Length)
+                    {
+                        // Skip escaped character
+                        position += 2;
+                        continue;
+                    }
+
+                    if (ch == '(')
+                    {
+                        parenDepth++;
+                    }
+                    else if (ch == ')')
+                    {
+                        parenDepth--;
+                    }
+                    else if (ch == '{')
+                    {
+                        braceDepth++;
+                    }
+                    else if (ch == '}')
+                    {
+                        braceDepth--;
+                    }
+                    else if (ch == '$' && position + 1 < content.Length && 
+                             (content[position + 1] == '"' || content[position + 1] == '\''))
+                    {
+                        // String interpolation: $" or $'
+                        var interpQuoteChar = content[position + 1];
+                        position += 2; // Skip $"
+                        
+                        // Parse until we find the closing interpolation quote
+                        var interpBraceDepth = 0;
+                        while (position < content.Length)
+                        {
+                            if (content[position] == '\\' && position + 1 < content.Length)
+                            {
+                                position += 2;
+                                continue;
+                            }
+                            
+                            if (content[position] == '{')
+                            {
+                                interpBraceDepth++;
+                            }
+                            else if (content[position] == '}')
+                            {
+                                interpBraceDepth--;
+                            }
+                            else if (content[position] == interpQuoteChar && interpBraceDepth == 0)
+                            {
+                                // Found end of interpolated string
+                                position++;
+                                break;
+                            }
+                            
+                            position++;
+                        }
+                        continue;
+                    }
+                    else if (ch == quoteChar && parenDepth == 0 && braceDepth == 0)
+                    {
+                        // Found closing quote at depth 0
+                        break;
+                    }
+
                     position++;
+                }
 
                 if (position < content.Length)
                 {
@@ -568,26 +640,149 @@ public class SimpleRazorParser
     private List<AttributeNode> ParseAttributes(string attrsText)
     {
         var attributes = new List<AttributeNode>();
-        var matches = AttributeRegex.Matches(attrsText);
+        var position = 0;
 
-        foreach (Match match in matches)
+        while (position < attrsText.Length)
         {
-            if (match.Groups["name"].Success)
+            // Skip whitespace
+            while (position < attrsText.Length && char.IsWhiteSpace(attrsText[position]))
+                position++;
+
+            if (position >= attrsText.Length)
+                break;
+
+            // Parse attribute name
+            var nameStart = position;
+            while (position < attrsText.Length && 
+                   (char.IsLetterOrDigit(attrsText[position]) || 
+                    attrsText[position] == '-' || 
+                    attrsText[position] == '_' || 
+                    attrsText[position] == '@' ||
+                    attrsText[position] == ':'))
             {
-                attributes.Add(new AttributeNode
-                {
-                    Name = match.Groups["name"].Value,
-                    Value = match.Groups["value"].Value,
-                    IsDirective = match.Groups["name"].Value.StartsWith("@")
-                });
+                position++;
             }
-            else if (match.Groups["boolname"].Success)
+
+            if (position == nameStart)
+                break;
+
+            var name = attrsText.Substring(nameStart, position - nameStart);
+
+            // Skip whitespace
+            while (position < attrsText.Length && char.IsWhiteSpace(attrsText[position]))
+                position++;
+
+            // Check for = sign
+            if (position < attrsText.Length && attrsText[position] == '=')
             {
+                position++; // Skip =
+
+                // Skip whitespace
+                while (position < attrsText.Length && char.IsWhiteSpace(attrsText[position]))
+                    position++;
+
+                // Parse attribute value with nested quote support
+                if (position < attrsText.Length && (attrsText[position] == '"' || attrsText[position] == '\''))
+                {
+                    var quoteChar = attrsText[position];
+                    position++; // Skip opening quote
+                    var valueStart = position;
+                    var parenDepth = 0;
+                    var braceDepth = 0;
+
+                    while (position < attrsText.Length)
+                    {
+                        var ch = attrsText[position];
+
+                        if (ch == '\\' && position + 1 < attrsText.Length)
+                        {
+                            // Skip escaped character
+                            position += 2;
+                            continue;
+                        }
+
+                        if (ch == '(')
+                        {
+                            parenDepth++;
+                        }
+                        else if (ch == ')')
+                        {
+                            parenDepth--;
+                        }
+                        else if (ch == '{')
+                        {
+                            braceDepth++;
+                        }
+                        else if (ch == '}')
+                        {
+                            braceDepth--;
+                        }
+                        else if (ch == '$' && position + 1 < attrsText.Length && 
+                                 (attrsText[position + 1] == '"' || attrsText[position + 1] == '\''))
+                        {
+                            // String interpolation: $" or $'
+                            // Skip the $ and the quote, then find matching quote
+                            var interpQuoteChar = attrsText[position + 1];
+                            position += 2; // Skip $"
+                            
+                            // Parse until we find the closing interpolation quote
+                            var interpBraceDepth = 0;
+                            while (position < attrsText.Length)
+                            {
+                                if (attrsText[position] == '\\' && position + 1 < attrsText.Length)
+                                {
+                                    position += 2;
+                                    continue;
+                                }
+                                
+                                if (attrsText[position] == '{')
+                                {
+                                    interpBraceDepth++;
+                                }
+                                else if (attrsText[position] == '}')
+                                {
+                                    interpBraceDepth--;
+                                }
+                                else if (attrsText[position] == interpQuoteChar && interpBraceDepth == 0)
+                                {
+                                    // Found end of interpolated string
+                                    position++;
+                                    break;
+                                }
+                                
+                                position++;
+                            }
+                            continue;
+                        }
+                        else if (ch == quoteChar && parenDepth == 0 && braceDepth == 0)
+                        {
+                            // Found closing quote at depth 0
+                            break;
+                        }
+
+                        position++;
+                    }
+
+                    var value = attrsText.Substring(valueStart, position - valueStart);
+                    attributes.Add(new AttributeNode
+                    {
+                        Name = name,
+                        Value = value,
+                        IsDirective = name.StartsWith("@")
+                    });
+
+                    if (position < attrsText.Length && (attrsText[position] == '"' || attrsText[position] == '\''))
+                        position++; // Skip closing quote
+                }
+            }
+            else
+            {
+                // Boolean attribute (no value)
                 attributes.Add(new AttributeNode
                 {
-                    Name = match.Groups["boolname"].Value,
+                    Name = name,
                     Value = null,
-                    IsDirective = match.Groups["boolname"].Value.StartsWith("@")
+                    IsDirective = name.StartsWith("@")
                 });
             }
         }

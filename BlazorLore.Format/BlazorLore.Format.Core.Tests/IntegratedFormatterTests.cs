@@ -35,6 +35,7 @@ public class IntegratedFormatterTests
     [InlineData("HtmlWithDoctype.html")]
     [InlineData("ComplexComponent.razor")]
     [InlineData("MixedContent.razor")]
+    [InlineData("NestedQuotes.razor")]
     public void Format_ShouldMatchExpectedOutput(string fileName)
     {
         // Arrange

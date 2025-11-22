@@ -1,0 +1,13 @@
+@page "/nested-quotes"
+<h1>Nested Quotes Test</h1>
+<button class="btn btn-primary" OnClick="@(() => NavigationManager.NavigateTo($"/sites/{SiteId}/devices"))">
+    Navigate
+</button>
+<button @onclick="@(() => Console.WriteLine($"User clicked: {userName}"))">Log Click</button>
+
+@code
+{
+    private int SiteId = 123;
+
+    private string userName = "John";
+}
