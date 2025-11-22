@@ -34,6 +34,11 @@ public class TextNode : BlazorNode
     public string Content { get; set; } = string.Empty;
 }
 
+public class CommentNode : BlazorNode
+{
+    public string Content { get; set; } = string.Empty;
+}
+
 public class CodeBlockNode : BlazorNode
 {
     public string Code { get; set; } = string.Empty;

@@ -247,7 +247,11 @@ public class ElementFormattingRule : IFormattingRule
 
     private void FormatNode(BlazorNode node, FormattingContext context)
     {
-        if (node is ElementNode elementNode)
+        if (node is CommentNode commentNode)
+        {
+            context.WriteLine($"@*{commentNode.Content}*@");
+        }
+        else if (node is ElementNode elementNode)
         {
             new ElementFormattingRule().Apply(elementNode, context);
         }

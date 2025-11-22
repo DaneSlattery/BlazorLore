@@ -17,6 +17,7 @@ public class BlazorFormatter : IBlazorFormatter
         _parser = parser;
         _rules = new List<IFormattingRule>
         {
+            new CommentFormattingRule(),
             new ElementFormattingRule(),
             new IfBlockFormattingRule(),
             new ElseBlockFormattingRule(),

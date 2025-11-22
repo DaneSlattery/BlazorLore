@@ -48,6 +48,7 @@ public class SimpleRazorParser
 {
     private static readonly Regex ElementRegex = new(@"<(?<tag>\w+)(?<attrs>[^>]*)>(?<content>.*?)</\k<tag>>|<(?<selfclosing>\w+)(?<selfattrs>[^>]*)/?>", RegexOptions.Singleline);
     private static readonly Regex AttributeRegex = new(@"(?<name>@?[\w-]+(?::\w+)?)\s*=\s*[""'](?<value>[^""']*)[""']|(?<boolname>@?[\w-]+(?::\w+)?)(?=\s|>|/>)", RegexOptions.IgnoreCase);
+    private static readonly Regex CommentRegex = new(@"@\*(?<content>.*?)\*@", RegexOptions.Singleline);
     private static readonly Regex CodeBlockRegex = new(@"@\{(?<code>.*?)\}", RegexOptions.Singleline);
     private static readonly Regex ExpressionRegex = new(@"@(?!code\s*\{)(?<expr>[a-zA-Z_]\w*(?:\.\w+)*(?:\([^)]*\))?)", RegexOptions.Singleline);
     private static readonly Regex CodeDirectiveRegex = new(@"@code\s*\{(?<code>(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*)\}", RegexOptions.Singleline);
@@ -149,6 +150,7 @@ public class SimpleRazorParser
             if (isRazor)
             {
                 // Handle Razor expressions
+                var commentMatch = CommentRegex.Match(content, nextIndex);
                 var codeBlockMatch = CodeBlockRegex.Match(content, nextIndex);
                 var expressionMatch = ExpressionRegex.Match(content, nextIndex);
                 var directiveMatch = DirectiveRegex.Match(content, nextIndex);
@@ -157,6 +159,7 @@ public class SimpleRazorParser
 
                 var razorMatches = new[]
                 {
+                    (match: commentMatch, type: "comment"),
                     (match: directiveMatch, type: "directive"),
                     (match: ifBlockMatch, type: "ifblock"),
                     (match: foreachBlockMatch, type: "foreachblock"),
@@ -171,6 +174,16 @@ public class SimpleRazorParser
                 {
                     switch (razorMatches.type)
                     {
+                        case "comment":
+                            nodes.Add(new CommentNode
+                            {
+                                Content = razorMatches.match.Groups["content"].Value,
+                                StartPosition = razorMatches.match.Index,
+                                EndPosition = razorMatches.match.Index + razorMatches.match.Length
+                            });
+                            position = razorMatches.match.Index + razorMatches.match.Length;
+                            continue;
+                            
                         case "directive":
                             nodes.Add(new CodeBlockNode
                             {
