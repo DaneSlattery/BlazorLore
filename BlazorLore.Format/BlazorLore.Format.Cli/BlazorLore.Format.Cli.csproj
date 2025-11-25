@@ -21,11 +21,11 @@
     <ToolCommandName>blazorfmt</ToolCommandName>
     
     <!-- NuGet package metadata -->
-    <PackageId>BlazorLore.Format.Cli</PackageId>
-    <Version>1.0.3</Version>
-    <Authors>BlazorLore Team</Authors>
-    <Company>BlazorLore</Company>
-    <Description>A powerful formatter for Blazor and Razor components, similar to Prettier for HTML/CSS/JS</Description>
+    <PackageId>CapEnergy.BlazorLore.Format.Cli</PackageId>
+    <!-- <Version>1.0.4</Version> -->
+    <Authors>CapEnergy Team</Authors>
+    <Company>CapEnergy</Company>
+    <Description>A powerful formatter for Blazor and Razor components, similar to Prettier for HTML/CSS/JS, forked from BlazorLore</Description>
     <PackageTags>blazor;razor;formatter;prettier;cli;dotnet-tool;code-formatting</PackageTags>
     <PackageProjectUrl>https://github.com/yourusername/BlazorLore.Format</PackageProjectUrl>
     <RepositoryUrl>https://github.com/yourusername/BlazorLore.Format</RepositoryUrl>
