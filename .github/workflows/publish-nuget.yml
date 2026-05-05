@@ -172,7 +172,7 @@ jobs:
             - 🚀 Generate Blazor components with optional code-behind and CSS
             - 📝 Generate forms from C# model classes with validation
             - 🔧 Refactor existing components (extract code-behind, modernize)
-            - 🎯 Support for .NET 9.0, .NET 10.0 and AOT compilation
+            - 🎯 Support for .NET 9.0, .NET 10.0, and AOT compilation
             - 📦 Cross-platform support (Windows, Linux, macOS)
           draft: false
           prerelease: false
